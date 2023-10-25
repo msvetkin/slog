@@ -9,7 +9,7 @@ find_package(range-v3 CONFIG REQUIRED)
 
 # sets default target properties
 function(set_slog_target_properties target type)
-  target_compile_features(${target} ${type} cxx_std_20)
+  target_compile_features(${target} ${type} cxx_std_23)
   set_target_properties(${target}
     PROPERTIES
       CXX_STANDARD_REQUIRED ON

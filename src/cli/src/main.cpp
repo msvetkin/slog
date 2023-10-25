@@ -6,6 +6,6 @@
 #include <fmt/core.h>
 
 int main(int /*argc*/, char * /*argv*/ []) {
-  fmt::print("slog version: {}\n", slog::core::version());
+  // fmt::print("slog version: {}\n", slog::core::version());
   return 0;
 }
