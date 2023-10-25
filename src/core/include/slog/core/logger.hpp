@@ -38,6 +38,8 @@ class SLOG_CORE_EXPORT Logger {
       Level level, std::string message, Attrs attrs,
       std::source_location sl = std::source_location::current()) const noexcept;
 
+  [[nodiscard]] bool enabled(const Level level) const noexcept;
+
  private:
   explicit Logger(const std::shared_ptr<Handler> &handler);
 

@@ -9,6 +9,7 @@
 
 namespace slog::core {
 
-using Attrs = std::vector<std::pair<std::string, std::string>>;
+using Attr = std::pair<std::string, std::string>;
+using Attrs = std::vector<Attr>;
 
 } // namespace slog::core

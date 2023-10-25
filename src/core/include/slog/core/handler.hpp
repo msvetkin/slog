@@ -10,7 +10,9 @@ namespace slog::core {
 class SLOG_CORE_EXPORT Handler {
  public:
   virtual ~Handler();
+
   virtual void handle(const Record &record) noexcept = 0;
+	[[nodiscard]] virtual bool enabled(const Level level) const noexcept = 0;
 };
 
 } // namespace slog::core

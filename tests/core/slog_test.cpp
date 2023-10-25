@@ -5,6 +5,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+namespace slog::core {
+
 TEST_CASE("header sanity check") {
+  auto logger = defaultLogger();
+  (void) logger;
 }
 
+
+} // namespace slog::core

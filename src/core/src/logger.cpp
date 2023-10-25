@@ -51,4 +51,8 @@ void Logger::log(Level level, std::string message, Attrs attrs,
   });
 }
 
+bool Logger::enabled(const Level level) const noexcept {
+  return handler_->enabled(level);
+}
+
 }  // namespace slog::core
