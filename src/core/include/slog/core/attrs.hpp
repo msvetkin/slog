@@ -71,15 +71,14 @@ template <typename... Args>
   [[maybe_unused]] const char *key = nullptr;
 
   (
-      [&]() {
-        if constexpr (detail::AsKey<Args>) {
-          key = args;
-        } else {
-          // fmt::print("push key = {}, value = {}\n", key, args);
-          attrs.emplace_back(key, fmt::to_string(args));
-        }
-      }(),
-      ...);
+    [&]() {
+      if constexpr (detail::AsKey<Args>) {
+        key = args;
+      } else {
+        attrs.emplace_back(key, fmt::to_string(args));
+      }
+    }(),
+  ...);
 
   return attrs;
 }

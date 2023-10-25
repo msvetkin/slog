@@ -38,7 +38,9 @@ class SLOG_CORE_EXPORT Logger {
 
   template<typename ... Args>
   void log(Level level, const Context &context, Args &&...args) const noexcept {
-    log2(level, std::string{context.message()}, makeAttrs(std::forward<Args>(args)...), context.location());
+    if (enabled(level)) {
+      log2(level, std::string{context.message()}, makeAttrs(std::forward<Args>(args)...), context.location());
+    }
   }
 
   [[nodiscard]] bool enabled(const Level level) const noexcept;
