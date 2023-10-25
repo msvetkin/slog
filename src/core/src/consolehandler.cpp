@@ -24,8 +24,7 @@ struct fmt::formatter<slog::core::Attr> {
 
   auto format(const slog::core::Attr& attr, format_context& ctx) const
       -> format_context::iterator {
-    return fmt::format_to(ctx.out(), "{}={}", attr.first, attr.second);
-    // return fmt::format_to(ctx.out(), "{}={}", attr.key, attr.value.value());
+    return fmt::format_to(ctx.out(), "{}={}", attr.key, attr.value);
   }
 };
 
