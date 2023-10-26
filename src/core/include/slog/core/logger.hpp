@@ -52,6 +52,13 @@ class SLOG_CORE_EXPORT Logger {
 
   [[nodiscard]] bool enabled(const Level level) const noexcept;
 
+  template<typename ... Args>
+  [[nodiscard]] Logger with(Args &&...args) const noexcept {
+    Logger logger{handler_};
+    logger.attrs_ = makeAttrs(std::forward<Args>(args)...);
+    return logger;
+  }
+
  private:
   explicit Logger(const std::shared_ptr<Handler> &handler);
 
@@ -59,6 +66,7 @@ class SLOG_CORE_EXPORT Logger {
 
  private:
   std::shared_ptr<Handler> handler_;
+  Attrs attrs_;
 };
 
 }  // namespace slog::core

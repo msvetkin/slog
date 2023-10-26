@@ -21,6 +21,7 @@ std::expected<Logger, std::string> Logger::make(
 }
 
 void Logger::logImpl(Level level, const Context &context, Attrs attrs) const noexcept {
+  attrs.insert(attrs.begin(), attrs_.begin(), attrs_.end());
   handler_->handle({
       Record::Clock::now(),
       context,

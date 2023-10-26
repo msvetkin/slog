@@ -5,11 +5,10 @@
 
 #include <string_view>
 
-// void requestUrl(const std::string &url) {
-  // auto logger = slog::with("url", url);
-
-  // logger.debug("retry", 3)
-// }
+void requestUrl(const std::string &url) {
+  auto logger = slog::with("requestUrl", url);
+  logger.debug("do", "retry", 3);
+}
 
 int main(int /*argc*/, char * /*argv*/ []) {
   slog::debug("test", "age", 3);
@@ -22,9 +21,7 @@ int main(int /*argc*/, char * /*argv*/ []) {
   slog::error("test", "age", 88, "name", name);
 
 
-  // Logger -> Handler
-
-  // Logger::debug -> Record (type-erased) -> Handler::handle
+  requestUrl("https://google.com");
 
   return 0;
 }

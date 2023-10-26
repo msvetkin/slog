@@ -32,4 +32,9 @@ void error(core::Context &&context, Args &&...args) noexcept {
   defaultLogger().log(core::Level::Error, context, std::forward<Args>(args)...);
 }
 
+template <typename... Args>
+[[nodiscard]] core::Logger with(Args &&...args) noexcept {
+  return defaultLogger().with(std::forward<Args>(args)...);
+}
+
 }  // namespace slog
