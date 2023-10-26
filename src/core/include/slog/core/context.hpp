@@ -24,7 +24,7 @@ class SLOG_CORE_EXPORT Context {
   constexpr Context &operator=(Context &&other) = default;
 
   constexpr Context(const Context &other) = default;
-  constexpr Context &operator=(Context &other) = default;
+  constexpr Context &operator=(const Context &other) = default;
 
   [[nodiscard]] constexpr std::string_view message() const noexcept {
     return message_;

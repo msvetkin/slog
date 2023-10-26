@@ -50,7 +50,7 @@ auto styledLevel(const Record& record) noexcept {
 
 void ConsoleHandler::handle(const Record& record) noexcept {
   fmt::print("{:%Y/%m/%d %H/%M/%S} {} {} {}\n", record.time,
-             styledLevel(record), record.message, fmt::join(record.attrs, " "));
+             styledLevel(record), record.context.message(), fmt::join(record.attrs, " "));
 }
 
 bool ConsoleHandler::enabled(const Level) const noexcept {

@@ -6,6 +6,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <optional>
+
 namespace slog::core {
 
 struct DummyHandler : Handler {
@@ -17,7 +19,7 @@ struct DummyHandler : Handler {
     return true;
   }
 
-  Record record;
+  std::optional<Record> record;
 };
 
 TEST_CASE("make") {
@@ -29,10 +31,11 @@ TEST_CASE("make") {
 TEST_CASE("debug") {
   auto handler = std::make_shared<DummyHandler>();
   auto logger = Logger::make(handler);
-  logger->debug("test", {{"1", "2"}});
+  logger->debug("test", "age", 3);
   REQUIRE(logger->enabled(Level::Debug));
-  REQUIRE(handler->record.message == std::string{"test"});
-  REQUIRE(handler->record.attrs == Attrs{{"1", "2"}});
+  REQUIRE(handler->record);
+  REQUIRE(handler->record->context.message() == std::string_view{"test"});
+  REQUIRE(handler->record->attrs == Attrs{{"age", "3"}});
 }
 
 } // namespace slog::core

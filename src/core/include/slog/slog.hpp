@@ -22,16 +22,19 @@ void debug(core::Context &&context, Args &&...args) noexcept {
   defaultLogger().log(core::Level::Debug, context, std::forward<Args>(args)...);
 }
 
-// void CXX_SLOG_EXPORT
-// info(std::string message, Attrs attrs,
-     // std::source_location sl = std::source_location::current()) noexcept;
+template <typename... Args>
+void info(core::Context &&context, Args &&...args) noexcept {
+  defaultLogger().log(core::Level::Info, context, std::forward<Args>(args)...);
+}
 
-// void CXX_SLOG_EXPORT
-// warning(std::string message, Attrs attrs,
-        // std::source_location sl = std::source_location::current()) noexcept;
+template <typename... Args>
+void warning(core::Context &&context, Args &&...args) noexcept {
+  defaultLogger().log(core::Level::Warning, context, std::forward<Args>(args)...);
+}
 
-// void CXX_SLOG_EXPORT
-// error(std::string message, Attrs attrs,
-      // std::source_location sl = std::source_location::current()) noexcept;
+template <typename... Args>
+void error(core::Context &&context, Args &&...args) noexcept {
+  defaultLogger().log(core::Level::Error, context, std::forward<Args>(args)...);
+}
 
 }  // namespace slog

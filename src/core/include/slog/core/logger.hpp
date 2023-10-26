@@ -23,23 +23,30 @@ class SLOG_CORE_EXPORT Logger {
   [[nodiscard]] static std::expected<Logger, std::string> make(
       const std::shared_ptr<Handler> &handler) noexcept;
 
-  void debug(
-      std::string message, Attrs attrs,
-      std::source_location sl = std::source_location::current()) const noexcept;
-  void info(
-      std::string message, Attrs attrs,
-      std::source_location sl = std::source_location::current()) const noexcept;
-  void warning(
-      std::string message, Attrs attrs,
-      std::source_location sl = std::source_location::current()) const noexcept;
-  void error(
-      std::string message, Attrs attrs,
-      std::source_location sl = std::source_location::current()) const noexcept;
+  template<typename ... Args>
+  void debug(const Context &context, Args &&...args) const noexcept {
+    log(Level::Debug, context, std::forward<Args>(args)...);
+  }
+
+  template<typename ... Args>
+  void info(const Context &context, Args &&...args) const noexcept {
+    log(Level::Info, context, std::forward<Args>(args)...);
+  }
+
+  template<typename ... Args>
+  void warning(Level level, const Context &context, Args &&...args) const noexcept {
+    log(Level::Warning, context, std::forward<Args>(args)...);
+  }
+
+  template<typename ... Args>
+  void error(Level level, const Context &context, Args &&...args) const noexcept {
+    log(Level::Error, context, std::forward<Args>(args)...);
+  }
 
   template<typename ... Args>
   void log(Level level, const Context &context, Args &&...args) const noexcept {
     if (enabled(level)) {
-      log2(level, std::string{context.message()}, makeAttrs(std::forward<Args>(args)...), context.location());
+      logImpl(level, context, makeAttrs(std::forward<Args>(args)...));
     }
   }
 
@@ -48,7 +55,7 @@ class SLOG_CORE_EXPORT Logger {
  private:
   explicit Logger(const std::shared_ptr<Handler> &handler);
 
-  void log2(Level level, std::string message, Attrs attrs, std::source_location sl) const noexcept;
+  void logImpl(Level level, const Context &context, Attrs attrs) const noexcept;
 
  private:
   std::shared_ptr<Handler> handler_;

@@ -24,7 +24,9 @@ concept AsKey = requires {
 };
 
 template <typename Value>
-concept AsValue = requires { typename fmt::is_formattable<Value>; };
+concept AsValue = requires {
+  typename fmt::is_formattable<Value>;
+};
 
 template <typename Key, typename Value>
 concept AsKeyAndValue = requires {

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "slog/core/attrs.hpp"
+#include "slog/core/context.hpp"
 #include "slog/core/export.hpp"
 #include "slog/core/level.hpp"
 
@@ -21,9 +22,7 @@ struct SLOG_CORE_EXPORT Record {
 
   TimePoint time;
 
-  std::string message;
-
-  std::source_location source;
+  Context context;
 
   Level level;
 
