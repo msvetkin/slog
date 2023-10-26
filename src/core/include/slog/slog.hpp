@@ -5,17 +5,12 @@
 
 #include "slog/core/context.hpp"
 #include "slog/core/logger.hpp"
-#include "slog/core/handler.hpp"
 
 namespace slog {
 
-// namespace detail {
-
-// void CXX_SLOG_EXPORT debug(Context &&context, Attrs attrs) noexcept;
-
-// }  // namespace detail
-
 [[nodiscard]] core::Logger SLOG_CORE_EXPORT defaultLogger() noexcept;
+
+void SLOG_CORE_EXPORT setDefaultLogger(core::Logger logger) noexcept;
 
 template <typename... Args>
 void debug(core::Context &&context, Args &&...args) noexcept {

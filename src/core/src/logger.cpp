@@ -20,26 +20,6 @@ std::expected<Logger, std::string> Logger::make(
   return Logger{handler};
 }
 
-// void Logger::debug(std::string message, Attrs attrs,
-                   // std::source_location sl) const noexcept {
-  // log2(Level::Debug, std::move(message), std::move(attrs), sl);
-// }
-
-// void Logger::info(std::string message, Attrs attrs,
-                  // std::source_location sl) const noexcept {
-  // log2(Level::Info, std::move(message), std::move(attrs), sl);
-// }
-
-// void Logger::warning(std::string message, Attrs attrs,
-                     // std::source_location sl) const noexcept {
-  // log2(Level::Warning, std::move(message), std::move(attrs), sl);
-// }
-
-// void Logger::error(std::string message, Attrs attrs,
-                   // std::source_location sl) const noexcept {
-  // log2(Level::Error, std::move(message), std::move(attrs), sl);
-// }
-
 void Logger::logImpl(Level level, const Context &context, Attrs attrs) const noexcept {
   handler_->handle({
       Record::Clock::now(),
