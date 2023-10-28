@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 // #include "slog/slog.hpp"
+#include "slog/core/context.hpp"
 
 #include <fmt/core.h>
 
@@ -119,9 +120,12 @@
 
 namespace slog::v2 {
 
+using Context = core::Context;
+
 struct DefaultHandler {
   template<typename ... Args>
-  void handle(Args &&...args) {
+  void handle(Context &&context, Args &&...args) {
+    fmt::print("{} ", context.message());
     (
       [](auto &&args) {
         if constexpr (std::is_bounded_array_v<std::remove_cvref_t<decltype(args)>>) {
@@ -137,8 +141,9 @@ struct DefaultHandler {
 
 struct JsonHandler {
   template<typename ... Args>
-  void handle(Args &&...args) {
+  void handle(Context &&context, Args &&...args) {
     nlohmann::json json;
+    json["message"] = context.message();
 
     [[maybe_unused]] const char *key = nullptr;
 
@@ -147,7 +152,6 @@ struct JsonHandler {
         if constexpr (std::is_bounded_array_v<std::remove_cvref_t<decltype(args)>>) {
           key = args;
         } else {
-          fmt::print("add to json, key = {}, value = {}\n", key, args);
           json[key] = args;
         }
       }(std::forward<Args>(args)),
@@ -159,7 +163,7 @@ struct JsonHandler {
 
 template<typename T>
 concept Handler = requires(T t) {
-  { t.handle() } -> std::same_as<void>;
+  { t.handle(Context{"test"}) } -> std::same_as<void>;
 };
 
 template <typename ...>
@@ -174,16 +178,16 @@ template <typename ... DummyArgs>
 
 template<typename ... Args, typename ... DummyArgs>
   requires (sizeof ... (DummyArgs) == 0)
-void debug(Args &&...args) {
+void debug(Context &&context, Args &&...args) {
   Handler auto &handler = setHandler<DummyArgs...>;
-  handler.handle(std::forward<Args>(args)...);
+  handler.handle(std::move(context), std::forward<Args>(args)...);
 }
 
 struct Logger {
   template<typename ... Args, typename ... DummyArgs>
-  void debug(Args &&...args) {
+  void debug(Context &&context, Args &&...args) {
     Handler auto &handler = getHandler<DummyArgs...>();
-    handler.handle(std::forward<Args>(args)...);
+    handler.handle(std::move(context), std::forward<Args>(args)...);
   }
 };
 
@@ -197,9 +201,12 @@ struct LoggerWith : Logger {
   }
 
   template<typename ... Args>
-  void debug(Args &&...args) {
+  void debug(Context &&context, Args &&...args) {
     std::apply([&, this] (auto &&... withArgs) {
-      Logger::debug(withArgs..., std::forward<Args>(args)...);
+      Logger::debug(
+          std::forward<Context>(context),
+          withArgs...,
+          std::forward<Args>(args)...);
     }, with_);
   }
 };
@@ -216,12 +223,11 @@ inline auto slog::v2::setHandler<> = slog::v2::JsonHandler{};
 
 void requestUrl(const std::string &url) {
   auto logger = slog::v2::with("requestUrl", url);
-  logger.debug("retry", 3);
-  // logger.debug("do", "retry", 3);
+  logger.debug("get", "retry", 3);
 }
 
 int main(int /*argc*/, char * /*argv*/ []) {
-  slog::v2::debug("level", 10, "age", 3);
+  slog::v2::debug("main", "level", 10, "age", 3);
 
   // slog::v2::with("level", 10)
 
