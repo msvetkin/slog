@@ -5,12 +5,16 @@
 #include "slog/core/context.hpp"
 
 #include <fmt/core.h>
+#include <fmt/format.h>
+#include <fmt/color.h>
+#include <fmt/chrono.h>
 
-#include <nlohmann/json.hpp>
+// #include <nlohmann/json.hpp>
 
 #include <string_view>
 #include <functional>
 #include <type_traits>
+#include <chrono>
 
 // namespace slog {
 
@@ -117,15 +121,67 @@
 
 // };
 
+#include <source_location>
 
 namespace slog::v2 {
 
-using Context = core::Context;
+class Context {
+ public:
+  template<std::size_t N>
+  consteval Context(
+      const char (&message)[N],
+      std::source_location location = std::source_location::current()) noexcept
+      : message_(&message[0]),
+        location_(location) {
+  }
+
+  consteval Context(Context &&other) = default;
+  consteval Context &operator=(Context &&other) = default;
+
+  consteval Context(const Context &other) = default;
+  consteval Context &operator=(const Context &other) = default;
+
+  [[nodiscard]] std::string_view message() const noexcept {
+    return message_;
+  }
+
+  [[nodiscard]] std::source_location location() const noexcept {
+    return location_;
+  }
+
+ private:
+  std::string_view message_;
+  std::source_location location_;
+};
+
+enum class Level {
+  Debug,
+  Info,
+  Warning,
+  Error
+};
+
+auto styledLevel(const Level level) noexcept {
+  switch (level) {
+    case Level::Debug:
+      return fmt::styled("DEBUG", fg(fmt::color::light_gray));
+    case Level::Info:
+      return fmt::styled("INFO ", fg(fmt::color::green));
+    case Level::Warning:
+      return fmt::styled("WARN ", fg(fmt::color::yellow));
+    case Level::Error:
+    default:
+      return fmt::styled("ERROR", fg(fmt::color::red));
+  }
+}
 
 struct DefaultHandler {
   template<typename ... Args>
-  void handle(Context &&context, Args &&...args) {
-    fmt::print("{} ", context.message());
+  void handle(const Level level, Context &&context, Args &&...args) {
+
+    const auto time = std::chrono::system_clock::now();
+
+    fmt::print("{:%Y/%m/%d %H/%M/%S} {} {} ", time, styledLevel(level), context.message());
     (
       [](auto &&args) {
         if constexpr (std::is_bounded_array_v<std::remove_cvref_t<decltype(args)>>) {
@@ -137,33 +193,39 @@ struct DefaultHandler {
     ...);
     fmt::print("\n");
   }
-};
 
-struct JsonHandler {
-  template<typename ... Args>
-  void handle(Context &&context, Args &&...args) {
-    nlohmann::json json;
-    json["message"] = context.message();
-
-    [[maybe_unused]] const char *key = nullptr;
-
-    (
-      [&key, &json](auto &&args) mutable {
-        if constexpr (std::is_bounded_array_v<std::remove_cvref_t<decltype(args)>>) {
-          key = args;
-        } else {
-          json[key] = args;
-        }
-      }(std::forward<Args>(args)),
-    ...);
-
-    fmt::print("{}\n", to_string(json));
+  [[nodiscard]] bool enabled(const Level /*level*/) const noexcept {
+    return true;
   }
 };
 
+// struct JsonHandler {
+  // template<typename ... Args>
+  // void handle(Context &&context, Args &&...args) {
+    // nlohmann::json json;
+    // json["message"] = context.message();
+
+    // [[maybe_unused]] const char *key = nullptr;
+
+    // (
+      // [&key, &json](auto &&args) mutable {
+        // if constexpr (std::is_bounded_array_v<std::remove_cvref_t<decltype(args)>>) {
+          // key = args;
+        // } else {
+          // json[key] = args;
+        // }
+      // }(std::forward<Args>(args)),
+    // ...);
+
+    // fmt::print("{}\n", to_string(json));
+  // }
+// };
+
 template<typename T>
 concept Handler = requires(T t) {
-  { t.handle(Context{"test"}) } -> std::same_as<void>;
+  { t.handle(Level::Debug, Context{"test"}) } -> std::same_as<void>;
+  { t.handle(Level::Debug, Context{"test"}, "key", 1) } -> std::same_as<void>;
+  { t.enabled(Level::Debug) } -> std::same_as<bool>;
 };
 
 template <typename ...>
@@ -176,18 +238,25 @@ template <typename ... DummyArgs>
   return handler;
 }
 
-template<typename ... Args, typename ... DummyArgs>
-  requires (sizeof ... (DummyArgs) == 0)
-void debug(Context &&context, Args &&...args) {
-  Handler auto &handler = setHandler<DummyArgs...>;
-  handler.handle(std::move(context), std::forward<Args>(args)...);
-}
-
 struct Logger {
+  template<typename ... Args>
+  void debug(Context &&context, Args &&...args) const noexcept {
+    log(Level::Debug, std::move(context), std::forward<Args>(args)...);
+  }
+
   template<typename ... Args, typename ... DummyArgs>
-  void debug(Context &&context, Args &&...args) {
+  void log(const Level level, Context &&context, Args &&... args) const noexcept {
     Handler auto &handler = getHandler<DummyArgs...>();
-    handler.handle(std::move(context), std::forward<Args>(args)...);
+
+    if (handler.enabled(level)) {
+      handler.handle(level, std::move(context), std::forward<Args>(args)...);
+    }
+  }
+
+  template<typename ... DummyArgs>
+  [[nodiscard]] bool enabled(const Level level) const noexcept {
+    Handler auto &handler = getHandler<DummyArgs...>();
+    return handler.enabled(level);
   }
 };
 
@@ -216,10 +285,16 @@ template<typename ... Args>
   return LoggerWith<Args...>(args...);
 }
 
+template<typename ... Args>
+void debug(Context &&context, Args &&...args) {
+  Logger logger{};
+  logger.log(Level::Debug, std::move(context), std::forward<Args>(args)...);
+}
+
 } // namespace slog::v2
 
-template <>
-inline auto slog::v2::setHandler<> = slog::v2::JsonHandler{};
+// template <>
+// inline auto slog::v2::setHandler<> = slog::v2::JsonHandler{};
 
 void requestUrl(const std::string &url) {
   auto logger = slog::v2::with("requestUrl", url);
