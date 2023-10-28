@@ -4,6 +4,7 @@
   "version-string": "0.0.1",
   "dependencies": [
     "fmt",
+    "nlohmann-json",
     "range-v3",
     "ms-gsl",
     "catch2"
