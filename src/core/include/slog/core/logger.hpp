@@ -3,29 +3,22 @@
 
 #pragma once
 
-#include "slog/core/attrs.hpp"
 #include "slog/core/context.hpp"
-#include "slog/core/export.hpp"
-#include "slog/core/level.hpp"
+#include "slog/core/defaulthandler.hpp"
+#include "slog/core/handler.hpp"
 
-#include <expected>
-#include <memory>
-#include <source_location>
-#include <string>
 #include <utility>
 
 namespace slog::core {
 
-class Handler;
+template <typename ...>
+inline auto defaultHandler = DefaultHandler{};
 
 class SLOG_CORE_EXPORT Logger {
  public:
-  [[nodiscard]] static std::expected<Logger, std::string> make(
-      const std::shared_ptr<Handler> &handler) noexcept;
-
   template<typename ... Args>
   void debug(const Context &context, Args &&...args) const noexcept {
-    log(Level::Debug, context, std::forward<Args>(args)...);
+    log(Level::Debug, std::move(context), std::forward<Args>(args)...);
   }
 
   template<typename ... Args>
@@ -34,39 +27,31 @@ class SLOG_CORE_EXPORT Logger {
   }
 
   template<typename ... Args>
-  void warning(Level level, const Context &context, Args &&...args) const noexcept {
+  void warning(const Context &context, Args &&...args) const noexcept {
     log(Level::Warning, context, std::forward<Args>(args)...);
   }
 
   template<typename ... Args>
-  void error(Level level, const Context &context, Args &&...args) const noexcept {
+  void error(const Context &context, Args &&...args) const noexcept {
     log(Level::Error, context, std::forward<Args>(args)...);
   }
 
-  template<typename ... Args>
-  void log(Level level, const Context &context, Args &&...args) const noexcept {
-    if (enabled(level)) {
-      logImpl(level, context, makeAttrs(std::forward<Args>(args)...));
+  template<typename ... Args, typename ... DummyArgs>
+  void log(const Level level, const Context &context, Args &&... args) const noexcept {
+    Handler auto &handler = defaultHandler<DummyArgs...>;
+
+    if (handler.enabled(level)) {
+      handler.handle(
+          { Record::Clock::now(), context, level },
+          std::forward<Args>(args)...);
     }
   }
 
-  [[nodiscard]] bool enabled(const Level level) const noexcept;
-
-  template<typename ... Args>
-  [[nodiscard]] Logger with(Args &&...args) const noexcept {
-    Logger logger{handler_};
-    logger.attrs_ = makeAttrs(std::forward<Args>(args)...);
-    return logger;
+  template<typename ... DummyArgs>
+  [[nodiscard]] bool enabled(const Level level) const noexcept {
+    Handler auto &handler = defaultHandler<DummyArgs...>;
+    return handler.enabled(level);
   }
-
- private:
-  explicit Logger(const std::shared_ptr<Handler> &handler);
-
-  void logImpl(Level level, const Context &context, Attrs attrs) const noexcept;
-
- private:
-  std::shared_ptr<Handler> handler_;
-  Attrs attrs_;
 };
 
 }  // namespace slog::core

@@ -5,17 +5,17 @@ add_slog_module(core)
 
 target_sources(${slog_module_target}
   PRIVATE
-    include/slog/core/consolehandler.hpp
+    include/slog/core/defaulthandler.hpp
     include/slog/core/context.hpp
     include/slog/core/handler.hpp
     include/slog/core/level.hpp
     include/slog/core/logger.hpp
     include/slog/core/record.hpp
     include/slog/slog.hpp
-    src/consolehandler.cpp
-    src/handler.cpp
-    src/logger.cpp
-    src/slog.cpp
+    src/defaulthandler.cpp
+    # src/handler.cpp
+    # src/logger.cpp
+    # src/slog.cpp
 )
 
 find_package(fmt CONFIG REQUIRED)

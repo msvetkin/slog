@@ -5,14 +5,15 @@
 
 #include "slog/core/record.hpp"
 
+#include <utility>
+
 namespace slog::core {
 
-class SLOG_CORE_EXPORT Handler {
- public:
-  virtual ~Handler();
-
-  virtual void handle(const Record &record) noexcept = 0;
-	[[nodiscard]] virtual bool enabled(const Level level) const noexcept = 0;
+template<typename T>
+concept Handler = requires(T t) {
+  { t.handle(std::declval<Record>()) } -> std::same_as<void>;
+  { t.handle(std::declval<Record>(), "key", 1) } -> std::same_as<void>;
+  { t.enabled(Level::Debug) } -> std::same_as<bool>;
 };
 
 } // namespace slog::core

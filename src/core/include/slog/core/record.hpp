@@ -3,16 +3,11 @@
 
 #pragma once
 
-#include "slog/core/attrs.hpp"
 #include "slog/core/context.hpp"
 #include "slog/core/export.hpp"
 #include "slog/core/level.hpp"
 
 #include <chrono>
-#include <source_location>
-#include <string>
-#include <utility>
-#include <vector>
 
 namespace slog::core {
 
@@ -26,7 +21,7 @@ struct SLOG_CORE_EXPORT Record {
 
   Level level;
 
-  Attrs attrs;
+  // Attrs attrs;
 };
 
 }  // namespace slog::core

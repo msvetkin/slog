@@ -3,38 +3,46 @@
 
 #pragma once
 
-#include "slog/core/context.hpp"
 #include "slog/core/logger.hpp"
+
+#include <tuple>
 
 namespace slog {
 
-[[nodiscard]] core::Logger SLOG_CORE_EXPORT defaultLogger() noexcept;
+template<typename ... BaseArgs>
+struct LoggerWith : core::Logger {
 
-void SLOG_CORE_EXPORT setDefaultLogger(core::Logger logger) noexcept;
+  std::tuple<BaseArgs...> with_;
 
-template <typename... Args>
-void debug(core::Context &&context, Args &&...args) noexcept {
-  defaultLogger().log(core::Level::Debug, context, std::forward<Args>(args)...);
+  constexpr LoggerWith(BaseArgs &&...args)
+    : with_{args...} {
+  }
+
+  template<typename ... Args>
+  void debug(const core::Context &context, Args &&...args) {
+    std::apply([&, this] (auto &&... withArgs) {
+      core::Logger::debug(
+          context,
+          withArgs...,
+          std::forward<Args>(args)...);
+    }, with_);
+  }
+};
+
+template<typename ... Args>
+[[nodiscard]] constexpr decltype(auto) with(Args &&...args) noexcept {
+  return LoggerWith<Args...>(args...);
 }
 
-template <typename... Args>
-void info(core::Context &&context, Args &&...args) noexcept {
-  defaultLogger().log(core::Level::Info, context, std::forward<Args>(args)...);
+template<std::size_t N>
+[[nodiscard]] constexpr decltype(auto) category(const char (&category)[N]) noexcept {
+  return with("category", category);
 }
 
-template <typename... Args>
-void warning(core::Context &&context, Args &&...args) noexcept {
-  defaultLogger().log(core::Level::Warning, context, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-void error(core::Context &&context, Args &&...args) noexcept {
-  defaultLogger().log(core::Level::Error, context, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-[[nodiscard]] core::Logger with(Args &&...args) noexcept {
-  return defaultLogger().with(std::forward<Args>(args)...);
+template<typename ... Args>
+void debug(const core::Context &context, Args &&...args) {
+  core::Logger logger{};
+  logger.log(core::Level::Debug, context, std::forward<Args>(args)...);
 }
 
 }  // namespace slog

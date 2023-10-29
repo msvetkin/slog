@@ -3,14 +3,12 @@
 
 #pragma once
 
-#include "slog/core/export.hpp"
-
 #include <string_view>
 #include <source_location>
 
 namespace slog::core {
 
-class SLOG_CORE_EXPORT Context {
+class Context {
  public:
   template<std::size_t N>
   consteval Context(
