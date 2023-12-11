@@ -21,13 +21,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/install-dependencies
+    - uses: msvetkin/cpp-actions@main
       with:
         preset: ${{matrix.target.preset}}
 
-    - uses: ./.github/actions/vcpkg-cache
+    # - uses: ./.github/actions/vcpkg-cache
 
-    - name: CMake workflow
-      shell: bash
-      run: |
-        cmake --workflow --preset ${{matrix.target.preset}}
+    # - name: CMake workflow
+      # shell: bash
+      # run: |
+        # cmake --workflow --preset ${{matrix.target.preset}}
